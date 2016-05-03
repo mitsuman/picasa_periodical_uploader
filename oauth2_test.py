@@ -1,6 +1,8 @@
 #!/usr/bin/python
 
+import datetime
 import httplib2
+import os
 import time
 import threading
 
@@ -49,12 +51,29 @@ def refreshCreds(credentials,sleep):
 
 gd_client = oauthLogin()
 
-ALBUM_ID='6280471381906555329'
 
-timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
-gd_client.InsertPhotoSimple(
-    '/data/feed/api/user/default/albumid/' + ALBUM_ID,
-    'New Photo',
-    timestamp,
-    sys.argv[1],
-    content_type='image/jpeg')
+def capture(currentTime):
+    # TODO: Create album automatically
+    ALBUM_ID='6280471381906555329'
+
+    filename = currentTime.strftime("%Y%m%d-%H%M%S") + ".jpg"
+
+    os.system("fswebcam -r 1280x720 --no-banner " + filename)
+    gd_client.InsertPhotoSimple(
+        '/data/feed/api/user/default/albumid/' + ALBUM_ID,
+        'New Photo',
+        filename,
+        filename,
+        content_type='image/jpeg')
+
+
+SHOT_PERIOD_IN_SEC = 60
+
+while True:
+    now = datetime.now()
+    capture(now)
+    target = now + timedelta(seconds=SHOT_PERIOD_IN_SEC)
+    delta = (target - datetime.now()).total_seconds()
+    if delta > 0:
+        time.sleep(delta)
+
