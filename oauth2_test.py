@@ -1,5 +1,10 @@
 #!/usr/bin/python
 
+# Constants
+SHOT_PERIOD_IN_SEC = 60
+CAMERA_NAME = "test"
+
+#
 import datetime
 import httplib2
 import os
@@ -52,15 +57,13 @@ def refreshCreds(credentials,sleep):
 gd_client = oauthLogin()
 
 
-def capture(currentTime):
-    # TODO: Create album automatically
-    ALBUM_ID='6280471381906555329'
-
+def capture(albumId, currentTime):
     filename = currentTime.strftime("%Y%m%d-%H%M%S") + ".jpg"
+    print('Creating Photo: %s ' % filename)
 
-    os.system("fswebcam -r 1280x720 --no-banner " + filename)
+    os.system("fswebcam -q -r 1280x720 --no-banner " + filename)
     gd_client.InsertPhotoSimple(
-        '/data/feed/api/user/default/albumid/' + ALBUM_ID,
+        '/data/feed/api/user/default/albumid/' + albumId,
         'New Photo',
         filename,
         filename,
@@ -68,11 +71,28 @@ def capture(currentTime):
     os.system("rm " + filename)
 
 
-SHOT_PERIOD_IN_SEC = 60
+def createAlbum(time, name):
+    albumName = time.strftime("%Y%m%d") + name
+    print('Creating Album: %s ' % albumName)
+    try:
+        album = gd_client.InsertAlbum(title=albumName, summary="",access='private')
+        return album.gphoto_id.text
+    except GooglePhotosException as gpe:
+        sys.exit(gpe.message)
+
+# main loop
+prevtime = datetime(1970, 1, 1)
+albumId = None
 
 while True:
     now = datetime.now()
-    capture(now)
+
+    if albumId == None or prevtime.date() != now.date():
+        albumId = createAlbum(now, CAMERA_NAME)
+
+    capture(albumId, now)
+
+    prevtime = now
     target = now + timedelta(seconds=SHOT_PERIOD_IN_SEC)
     delta = (target - datetime.now()).total_seconds()
     if delta > 0:
