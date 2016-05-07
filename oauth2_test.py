@@ -65,6 +65,7 @@ def capture(currentTime):
         filename,
         filename,
         content_type='image/jpeg')
+    os.system("rm " + filename)
 
 
 SHOT_PERIOD_IN_SEC = 60
