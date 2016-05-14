@@ -62,12 +62,16 @@ def capture(albumId, currentTime):
     print('Creating Photo: %s ' % filename)
 
     os.system("fswebcam -q -r 1280x720 --no-banner " + filename)
-    gd_client.InsertPhotoSimple(
-        '/data/feed/api/user/default/albumid/' + albumId,
-        'New Photo',
-        filename,
-        filename,
-        content_type='image/jpeg')
+    try:
+        gd_client.InsertPhotoSimple(
+            '/data/feed/api/user/default/albumid/' + albumId,
+            'New Photo',
+            filename,
+            filename,
+            content_type='image/jpeg')
+    except GooglePhotosException as gpe:
+        print(gpe.message)
+
     os.system("rm " + filename)
 
 
