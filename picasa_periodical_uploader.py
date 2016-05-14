@@ -1,10 +1,9 @@
 #!/usr/bin/python
 
-# Constants
-SHOT_PERIOD_IN_SEC = 60
-CAMERA_NAME = "test"
+# picasa periodical uploader
+#  2016 mitsuman
 
-#
+import argparse
 import datetime
 import httplib2
 import os
@@ -16,6 +15,13 @@ from subprocess import call
 from datetime import timedelta, datetime
 
 from gdata.photos.service import *
+
+# Option parser
+parser = argparse.ArgumentParser(description='Take a photo and upload picasa(google photo) periodically.')
+parser.add_argument('--period', type=int, nargs=1, default=60, help='Shot period in sec')
+parser.add_argument('--album-name', default='test', help='Picasa album name')
+parser.add_argument('--video-device', default='/dev/video0', help='Video device to take a photo')
+args = parser.parse_args()
 
 def oauthLogin():
     # using http://stackoverflow.com/questions/20248555/list-of-spreadsheets-gdata-oauth2/29157967#29157967 (thanks)
@@ -61,7 +67,7 @@ def capture(albumId, currentTime):
     filename = currentTime.strftime("%Y%m%d-%H%M%S") + ".jpg"
     print('Creating Photo: %s ' % filename)
 
-    os.system("fswebcam -q -r 1280x720 --no-banner " + filename)
+    os.system("fswebcam -q -r 1280x720 --no-banner -d " + args.video_device + " " + filename)
     try:
         gd_client.InsertPhotoSimple(
             '/data/feed/api/user/default/albumid/' + albumId,
@@ -92,12 +98,12 @@ while True:
     now = datetime.now()
 
     if albumId == None or prevtime.date() != now.date():
-        albumId = createAlbum(now, CAMERA_NAME)
+        albumId = createAlbum(now, args.album_name)
 
     capture(albumId, now)
 
     prevtime = now
-    target = now + timedelta(seconds=SHOT_PERIOD_IN_SEC)
+    target = now + timedelta(seconds=args.period)
     delta = (target - datetime.now()).total_seconds()
     if delta > 0:
         time.sleep(delta)
