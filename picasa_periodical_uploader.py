@@ -21,7 +21,7 @@ def oauthLogin():
     # using http://stackoverflow.com/questions/20248555/list-of-spreadsheets-gdata-oauth2/29157967#29157967 (thanks)
     from oauth2client.file import Storage
 
-    filename = os.path.join(os.path.expanduser('~'), ".oauth2_test")
+    filename = os.path.join(os.path.expanduser('~'), ".picasa_periodical_uploader")
     storage = Storage(filename)
     credentials = storage.get()
     if credentials is None or credentials.invalid:
